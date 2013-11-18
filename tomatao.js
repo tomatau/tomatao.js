@@ -110,6 +110,11 @@
         con(opts, t);
     };
     _.extend(Klass.prototype, Events, {
+        parent: Object,
+        super: function(){
+            var m = arguments[0];
+            this.parent.prototype[m].apply(this, _arg2a(arguments, 1));
+        },
         setops: function(opts) {
             // clone because this is empty..
             this.opts = _.omit(opts, _.keys(_.clone(this)));
@@ -127,7 +132,6 @@
         t.setEntities(opts);
         con(opts, t);
     };
-
     _.extend(Ctrlr.prototype, Klass.prototype, {
         opts: null,
         views: {},
@@ -270,7 +274,7 @@
     });
     
     /**
-     *  Composite
+     *      View - Composite
      *
      * has a section for a collection
      */
@@ -336,51 +340,140 @@
     /**
      *  Model
      */
-    var Model = Pln.Model = function(opts){
+    var BaseModel = Pln.BaseModel = function(opts, instanceData){
         var t = this;
         con(opts, t);
     };
-    _.extend(Model.prototype, Klass.prototype, {
+    _.extend(BaseModel.prototype, Klass.prototype, {
         defaults: {},
         props: {},
         validation: {}, // id specific validation options
         pK: 'id',
-        set: function(prop, val){
-            var attrs, attr;
+        set: function(prop, val, opts){
+            var attrs, attr, t = this;
             if (!prop) return;
 
             if ( _.isObject(prop) ) {
                 attrs = prop;
+                opts = val;
             } else {
-                (attrs = {})[key] = val;
+                (attrs = {})[prop] = val;
             }
             // perform validation
-            if (!this.validate(attrs)) return;
+            if (!t.validate(attrs)) return;
+
+            silent = opts.silent;
+
             // set the property
-            
+            for ( attr in attrs ) {
+                t.props[attr] = attrs[attr];
+                if (!silent) {
+                    t.trigger('change:' + attr, t, opts);
+                }
+            }
+            t.trigger('changed', t, opts);
         },
-        get: function(){
-
-        },
-        destroy: function(){
-
+        has: function(attr){
+            return this.propts(attr) != null;
         },
         validate: function(){
-
+            // go through validation object
+            // check each prop listed in object against validation type
+            // 
+            return true;
         },
         toJSON: function(){
+            return _.clone(this.props);
+        }
+    });
 
+    /**
+     *  Model - Rest
+     */
+    var RESTModel = Pln.RESTful = function(opts, instanceData){
+        var t = this;
+        con(opts, t);
+        // when we fetch, set them all
+        // when we save, post
+        // when we 
+    };
+    _.extend(RESTModel.prototype, BaseModel.prototype, {
+        baseUrl: '',
+        url: function(){
+            return this.baseUrl;
+        },
+        ajaxOpts: function(){
+            return {
+                type: 'GET',
+                url: t.url(),
+                /* password: ,*/
+                /* username: ,*/
+                /* headers: {
+                    'Authorisation': 'Basic' +  btoa(username + ':' password)
+                };
+                /* error: ,*/
+                statusCodes: {
+                    404: function(){
+                        // stuff
+                    }
+                }
+            }
+        },
+        fetch: function(opts) {
+            var t = this,
+                ajaxOpts = t.ajaxOpts();
+            // if it's new, we can't fetch shit
+            opts = opts || (opts = {});
+            _.extend(ajaxOpts, {
+                success: function(data, status, xhr){
+                    t.set(t.parse(resp, opts), opts);
+                }
+            });
+            return $.ajax(ajaxOpts);
+        },
+        save: function(opts){
+            // if it's not new, we need to pass the id
+            var t = this,
+                ajaxOpts = t.ajaxOpts();
+            // if it's new, we can't fetch shit
+            opts = opts || (opts = {});
+            _.extend(ajaxOpts, {
+                type: 'POST',
+                data: t.toJSON(),
+                success: function(data, status, xhr){
+                    t.set(t.parse(data, opts), opts);
+                }
+            });
+            return $.ajax(ajaxOpts);
+        },
+        destroy: function(opts){
+            // if it's new, we can't send
+            var t = this,
+                ajaxOpts = t.ajaxOpts();
+            // if it's new, we can't fetch shit
+            opts = opts || (opts = {});
+            _.extend(ajaxOpts, {
+                type: 'DELETE',
+                success: function(data, status, xhr){
+                    // remove everything
+                }
+            });
+            return $.ajax(ajaxOpts);
+        },
+        parse: function(data, opts){
+            return data;
         }
     });
     
     /**
-     *  Web Sockets
+     *  Model - Web Sockets
      */
-    var SocketModel = Pln.SocketModel = function(opts){
+    var SocketModel = Pln.SocketModel = function(opts, instanceData){
         var t = this;
         con(opts, t);
+        // setup the events
     };
-    _.extend(SocketModel.prototype, Model.prototype, {
+    _.extend(SocketModel.prototype, BaseModel.prototype, {
         url: '',
         onOpen: function(){
 
@@ -392,33 +485,36 @@
 
         }
     });
-    
-    /**
-     *  Rest
+
+    /*
+        Model Factory Facade
      */
-    var RESTModel = Pln.RESTful = function(opts){
-        var t = this;
-        con(opts, t);
+    // available to configure more model types
+    Pln.ModelMaps = {
+        rest    : RESTModel,
+        socket  : SocketModel,
+        basic   : BaseModel
     };
-    _.extend(RESTModel.prototype, Model.prototype, {
-        url: '',
-        fetch: function(){
+    Pln.defaultModel = 'basic';
 
-        },
-        save: function(){
-
-        },
-        parse: function(){
-
+    // factory method for creating models
+    var Model = Pln.Model = function(opts, instanceData){
+        if ( opts.type ) {
+            return new Pln.ModelMaps[opts.type](opts, instanceData);
         }
-    });
+        return new Pln.ModelMaps[Pln.defaultModel](opts, instanceData);
+    };
 
     /**
      *  Pagination
+     *
+     *  somehow make all models paginate?
      */
     
     /**
      *  Validation
+     *
+     * generic validation stuff for 
      */
 
     // Extend method, stolen from backbone.js
@@ -441,6 +537,6 @@
         return child;
     };
     // attach to all classes
-    Klass.extend = Ctrlr.extend = View.extend = extend;
+    Klass.extend = Ctrlr.extend = View.extend = Model.extend = extend;
 
 }).call(this, window, document, jQuery, _);
