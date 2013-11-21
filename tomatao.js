@@ -402,65 +402,54 @@
         url: function(){
             return this.baseUrl;
         },
-        ajaxOpts: function(){
-            return {
+        ajaxOpts: function(xOpts, opts){
+            var t = this;
+            xOpts = xOpts || (xOpts = {});
+            opts = opts || (opts = {});
+            return _.extend({
                 type: 'GET',
                 url: t.url(),
-                /* password: ,*/
-                /* username: ,*/
-                /* headers: {
-                    'Authorisation': 'Basic' +  btoa(username + ':' password)
-                };
-                /* error: ,*/
-                statusCodes: {
-                    404: function(){
-                        // stuff
-                    }
-                }
-            }
-        },
-        fetch: function(opts) {
-            var t = this,
-                ajaxOpts = t.ajaxOpts();
-            // if it's new, we can't fetch shit
-            opts = opts || (opts = {});
-            _.extend(ajaxOpts, {
-                success: function(data, status, xhr){
-                    t.set(t.parse(resp, opts), opts);
-                }
-            });
-            return $.ajax(ajaxOpts);
-        },
-        save: function(opts){
-            // if it's not new, we need to pass the id
-            var t = this,
-                ajaxOpts = t.ajaxOpts();
-            // if it's new, we can't fetch shit
-            opts = opts || (opts = {});
-            _.extend(ajaxOpts, {
-                type: 'POST',
-                data: t.toJSON(),
                 success: function(data, status, xhr){
                     t.set(t.parse(data, opts), opts);
+                },
+                statusCodes: {
+                    404: function(){}
                 }
-            });
+                /* 
+                    password: ,*/
+                    /* username: ,*/
+                    /* headers: {
+                        'Authorisation': 'Basic' +  btoa(username + ':' password)
+                    };
+                    /* error: ,*/
+            }, xOpts);
+        },
+        request: function(xOpts, opts) {
+            var ajaxOpts = this.ajaxOpts(xOpts, opts);
             return $.ajax(ajaxOpts);
         },
-        destroy: function(opts){
-            // if it's new, we can't send
+        fetch: function(opts) {
+            var xOpts = {};
+            return this.request(xOpts, opts);
+        },
+        save: function(opts) {
+            var xOpts = {
+                type: 'POST',
+                data: this.toJSON()
+            };
+            return this.request(xOpts, opts);
+        },
+        destroy: function(opts) {
             var t = this,
-                ajaxOpts = t.ajaxOpts();
-            // if it's new, we can't fetch shit
-            opts = opts || (opts = {});
-            _.extend(ajaxOpts, {
-                type: 'DELETE',
-                success: function(data, status, xhr){
-                    // remove everything
-                }
-            });
-            return $.ajax(ajaxOpts);
+                xOpts = {
+                    type: 'DELETE',
+                    success: function(data, status, xhr){
+                        t.clear(opts);
+                    }
+                };
+            return this.request(xOpts, opts);
         },
-        parse: function(data, opts){
+        parse: function(data, opts) {
             return data;
         }
     });
