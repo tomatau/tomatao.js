@@ -122,30 +122,19 @@
     });
 
     /**
-     *      Controller
+     *      Module
      *
      * pass viewOpts or modelOpts
      */
-    var Ctrlr = Pln.Ctrlr = function(opts) {
+    var Module = Pln.Module = function(opts) {
         var t = this;
         t.setViews(opts.views);
-        t.setEntities(opts);
         con(opts, t);
     };
-    _.extend(Ctrlr.prototype, Klass.prototype, {
+    _.extend(Module.prototype, Klass.prototype, {
         opts: null,
+        model: null,
         views: {},
-        models: {},
-        collections: {},
-        view: function(name, view){
-            this.views[name] = view;
-        },
-        model: function(name, model){
-            this.models[name] = model;
-        },
-        collection: function(name, col){
-            this.collections[name] = col;
-        },
         setViews: function(){
             var t = this;
             if (_.empty(t.views)) return;
@@ -153,22 +142,9 @@
                 t.views[name] = new v();
             }); 
         },
-        setEntities: function(opts){
-            var t = this;
-            this.models = opts.models || this.models;
-            this.collections = opts.collections || this.collections;
-            if ( _.empty(t.models) && _.empty(t.collections) ) return;
-            _.each(t.models, function(m, name){
-                t.models[name] = new m();
-            });
-            _.each(t.collections, function(c, name){
-                t.collections[name] = new c();
-            });
-        },
-        close: function(){
+        stop: function(){
             this.off();
             this.viewsOff();
-            this.modelsOff();
         },
         viewsOff: function(){
             _.each(this.views, function(v, idx) {
@@ -176,36 +152,29 @@
                 v.unsetElEvents();
                 v.off();
             });
-        },
-        entitiesOff: function(){
-            _.each(this.models, function(m, idx) {
-                m.off()
-            });
-            _.each(this.collections, function(c, idx) {
-                c.off()
-            });
         }
     });
 
     /**
-     *      View
+     *      Presenter
      */
-    var View = Pln.View = function(opts){
+    var Pres = Pln.Pres = function(opts){
         var t = this;
         t.setTmpl(opts.tmpl);
         t.setEl(opts.el);
         t.setElEvents(opts.events);
         con(opts, t);
     };
-    _.extend(View.prototype, Klass.prototype, {
+    _.extend(Pres.prototype, Klass.prototype, {
+        opts    : {},
         el      : null,
         attrs   : {
             id      : null,
             klass   : null
         },
-        tmpl    : null,
-        events  : {},
-        opts    : {},
+        tmpl        : null,
+        events      : {},
+        modelEvents : {},
         setTmpl: function(tmpl){
             this.tmpl = tmpl || this.tmpl;
             this.checkTmpl();
@@ -274,7 +243,7 @@
     });
     
     /**
-     *      View - Composite
+     *      Presenter - Composite
      *
      * has a section for a collection
      */
@@ -379,7 +348,6 @@
         validate: function(){
             // go through validation object
             // check each prop listed in object against validation type
-            // 
             return true;
         },
         toJSON: function(){
@@ -479,7 +447,7 @@
         Model Factory Facade
      */
     // available to configure more model types
-    Pln.ModelMaps = {
+    Pln.modelMaps = {
         rest    : RESTModel,
         socket  : SocketModel,
         basic   : BaseModel
@@ -489,9 +457,9 @@
     // factory method for creating models
     var Model = Pln.Model = function(opts, instanceData){
         if ( opts.type ) {
-            return new Pln.ModelMaps[opts.type](opts, instanceData);
+            return new Pln.modelMaps[opts.type](opts, instanceData);
         }
-        return new Pln.ModelMaps[Pln.defaultModel](opts, instanceData);
+        return new Pln.modelMaps[Pln.defaultModel](opts, instanceData);
     };
 
     /**
@@ -505,6 +473,50 @@
      *
      * generic validation stuff for 
      */
+    Pln.validRegex = {
+        // Matches any digit(s) (i.e. 0-9)
+        digits: /^\d+$/,
+
+        // Matched any number (e.g. 100.000)
+        number: /^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/,
+
+        // Matches a valid email address (e.g. mail@example.com)
+        email: /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i,
+
+        // Mathes any valid url (e.g. http://www.xample.com)
+        url: /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i
+    };
+
+    Pln.validators = (function(){
+
+        return {
+            required: function(){
+
+            },
+            min: function(){
+
+            },
+            max: function(){
+
+            },
+            length: function(){
+
+            },
+            oneOf: function(){
+
+            },
+            equals: function(){
+
+            },
+            pattern: function(){
+
+            },
+            fn: function(){
+
+            }
+        };  
+    });
+
 
     // Extend method, stolen from backbone.js
     /**
