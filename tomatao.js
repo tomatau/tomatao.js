@@ -113,7 +113,7 @@
         parent: Object,
         super: function(){
             var m = arguments[0];
-            this.parent.prototype[m].apply(this, _arg2a(arguments, 1));
+            return this.parent.prototype[m].apply(this, _arg2a(arguments, 1));
         },
         setops: function(opts) {
             // clone because this is empty..

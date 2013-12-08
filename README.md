@@ -60,7 +60,7 @@ var Child = Pln.Klass.extend({
 	parent: myParent, // extend through super
 	bar: "wurp durp",
 	init: function(){ // automatically called
-		this.once("custom:event", this.super.foo);
+		this.once("custom:event", this.super('foo'));
 	}
 });	
 ```
@@ -76,7 +76,7 @@ var foo = new Child.extend({
 	parent: Child,
 	cheezburger: "YES",
 	init: function(){
-		this.super.init();
+		this.super('init');
 		Pln.response("canihaz:cheezburger",
 			function(){
 				return this.cheezeburger;
@@ -89,7 +89,7 @@ var foo = new Child.extend({
 var chzbrgr = Pln.request('canihaz:cheezburger');
 
 ```
-These methods accept options that are passed from the request to the response for further control.
+These methods can also accept options that are passed from the request to the response for further control.
 
 ***Presenter Object*** - This is an MVP framework, and so the Backbone's 'View' object could be an equivilent and is for translating Model data into a format suitable for the view (template).  As such, the object is not called a View, it is called a 'Presenter' aka 'Pres'.
 
