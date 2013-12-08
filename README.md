@@ -1,7 +1,7 @@
 tomatao.js
 ===
 
-A Medium weight Javascript Framework built as a practical learning excersize.
+A medium weight Javascript MVP Framework built as a practical learning excersize.
 
 ###Concept
 Based on the flexibility and simplicity of Backbone JS, this framework aims to:
@@ -15,7 +15,7 @@ Based on the flexibility and simplicity of Backbone JS, this framework aims to:
 ####reduced load time
 By utilising more of the existing features within jQuery and underscore (which are requirements of backbone), the full and compressed versions of the files for this framework are much smaller.
 
-The framework is currently incomplete, but, already adding a small number of features and covering most existing features; shows a significant reduction in file size.
+The framework is currently incomplete, but, already adding a small number of features and covering most existing significant features; shows a noteworthy reduction in file size.
 
 ######Comparison
 
@@ -57,8 +57,8 @@ var Parent = Pln.Klass.extend({
 // access methods through super
 // allows for quick and dirty multiple extension
 var Child = Pln.Klass.extend({
-	parent: myParent; // extend through super
-	bar: "wurp durp";
+	parent: myParent, // extend through super
+	bar: "wurp durp",
 	init: function(){ // automatically called
 		this.once("custom:event", this.super.foo);
 	}
@@ -86,7 +86,7 @@ var foo = new Child.extend({
 });
 
 // somewhere else completely
-var chzbrgr = Pln.request('canihaz:cheezburger);
+var chzbrgr = Pln.request('canihaz:cheezburger');
 
 ```
 These methods accept options that are passed from the request to the response for further control.
@@ -97,6 +97,7 @@ These methods accept options that are passed from the request to the response fo
 var Todo = Pln.Pres.extend({
 	view: someTemplateHTML,
 	el: "selector",
+	model: Todo,
 	attrs: {
 		id: "my-id",
 		klass: "my classname"
@@ -106,8 +107,7 @@ var Todo = Pln.Pres.extend({
 	},
 	modelEvents: {
 		'change:name': 'method'
-	}
-	model: Todo,
+	},
 	method: function(){}
 });
 ```
