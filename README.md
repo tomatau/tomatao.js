@@ -43,7 +43,7 @@ Below is a list of the current and working features:
 
 **'init'** is used instead of **'initialize'** as I always spell it incorrectly and often don't even realise; causing a world of pain!
 
-```
+```javascript
 // Extend normally gaining Klass methods
 var Parent = Pln.Klass.extend({
 	foo: function(){
@@ -149,7 +149,9 @@ The implementation of this is also yet to be decided.
 - Validation methods, this is in the works
 - Composite Presenters, for binding Collections and rendering of views
 - Tests
-- 
+- Modules
+- Model Implementations
+- TBA
 
 
 ***
