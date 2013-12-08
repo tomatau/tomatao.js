@@ -35,9 +35,11 @@ Below is a list of the current and working features:
 
 ***Philanthropy*** - This is one of my favourite words and it is at the heart of this Framework… infact it's the namespace, a convenient three letter alternative to longer namespaces such as 'Backbone'.
 
-	var MyEventObj = _.({
-		foo: function(){}
-	}).extend(Pln.Events); // Pln = Main Namespace
+```javascript
+var MyEventObj = _.({
+	foo: function(){}
+}).extend(Pln.Events); // Pln = Main Namespace
+```
 
 ***Base Klass Object*** - A base class is exposed for custom lightweight objects
 
@@ -69,7 +71,7 @@ This exposes an events implementation as well as init and parent (super) access.
 
 ***Render and Request*** - Not only can you publish and subscribe to events, you can also make requests; an inversion of the pubsub technique.
 
-```
+```javascript
 var foo = new Child.extend({
 	parent: Child,
 	cheezburger: "YES",
@@ -91,7 +93,7 @@ These methods accept options that are passed from the request to the response fo
 
 ***Presenter Object*** - This is an MVP framework, and so the Backbone's 'View' object could be an equivilent and is for translating Model data into a format suitable for the view (template).  As such, the object is not called a View, it is called a 'Presenter' aka 'Pres'.
 
-```
+```javascript
 var Todo = Pln.Pres.extend({
 	view: someTemplateHTML,
 	el: "selector",
@@ -113,7 +115,7 @@ var Todo = Pln.Pres.extend({
 
 ***Module*** - A higher level object for orchestrating Views and Models.  This can be seen as used for grouping components or use-cases.  Also TBA.
 
-```
+```javascript
 var TodoComponent = Pln.Module.extend({
 	model: MyApp.Model.Todo,
 	views: {
