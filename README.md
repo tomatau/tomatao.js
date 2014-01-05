@@ -69,7 +69,7 @@ This exposes an events implementation as well as init and parent (super) access.
 
 ***Automatic method binding*** - Within many parts of backbone, methods lose their context. Tomatao JS maintains the original context of each method
 
-***Render and Request*** - Not only can you publish and subscribe to events, you can also make requests; an inversion of the pubsub technique.
+***Request and Response*** - Not only can you publish and subscribe to events, you can also make requests; an inversion of the pubsub technique.
 
 ```javascript
 var foo = new Child.extend({
