@@ -36,7 +36,7 @@ Below is a list of the current and working features:
 ***Philanthropy*** - This is one of my favourite words and it is at the heart of this Framework… infact it's the namespace, a convenient three letter alternative to longer namespaces such as 'Backbone'.
 
 ```javascript
-var MyEventObj = _.({
+var MyEventObj = _.extend({
 	foo: function(){}
 }).extend(Pln.Events); // Pln = Main Namespace
 ```
