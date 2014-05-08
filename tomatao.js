@@ -526,10 +526,14 @@
      */
     var extend = function(props) {
         var parent = this, 
-            child = function(){ return parent.apply(this, arguments); };
+            child = function(){
+                return parent.apply(this, arguments);
+            };
         _.extend(child, parent);
         // make a constructor whose con is the funct up there
-        var Surrogate = function(){ this.constructor = child; };
+        var Surrogate = function(){
+            this.constructor = child;
+        };
         // steal the parents prototype
         Surrogate.prototype = parent.prototype;
         child.prototype = new Surrogate;
